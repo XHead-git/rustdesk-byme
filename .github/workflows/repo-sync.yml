@@ -19,3 +19,16 @@ jobs:
         source_branch: "master"
         destination_branch: "master"
         github_token: ${{ secrets.WORKFLOW_TOKEN }}
+        
+  sync-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Merge master -> sync
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: master
+          target_branch: sync
+          github_token: ${{ secrets.WORKFLOW_TOKEN }}
