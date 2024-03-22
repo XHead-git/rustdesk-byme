@@ -1202,7 +1202,7 @@ jobs:
 
   build-rustdesk-sciter-arm:
     if: false
-    if: ${{ inputs.upload-artifact }}
+    #if: ${{ inputs.upload-artifact }}
     name: build-rustdesk(sciter) ${{ matrix.job.target }} (${{ matrix.job.os }}) [${{ matrix.job.extra-build-features }}]
     runs-on: [self-hosted, Linux, ARM64]
     strategy:
