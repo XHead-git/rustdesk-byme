@@ -1,0 +1,34 @@
+# File: .github/workflows/repo-sync.yml
+
+on:
+  schedule:
+  - cron:  "1 20 * * *"
+  workflow_dispatch:
+
+jobs:
+  repo-sync:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+    - name: repo-sync
+      uses: repo-sync/github-sync@v2
+      with:
+        source_repo: "https://github.com/rustdesk/rustdesk.git"
+        source_branch: "master"
+        destination_branch: "sync"
+        github_token: ${{ secrets.WORKFLOW_TOKEN }}
+        
+  sync-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Merge sync -> master
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: sync
+          target_branch: master
+          github_token: ${{ secrets.WORKFLOW_TOKEN }}
