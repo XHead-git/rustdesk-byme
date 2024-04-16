@@ -2116,11 +2116,18 @@ pub mod server_side {
         env: JNIEnv,
         _class: JClass,
         app_dir: JString,
+        custom_client_config: JString,
     ) {
         log::debug!("startServer from jvm");
         let mut env = env;
         if let Ok(app_dir) = env.get_string(&app_dir) {
             *config::APP_DIR.write().unwrap() = app_dir.into();
+        }
+        if let Ok(custom_client_config) = env.get_string(&custom_client_config) {
+            if !custom_client_config.is_empty() {
+                let custom_client_config: String = custom_client_config.into();
+                crate::read_custom_client(&custom_client_config);
+            }
         }
         std::thread::spawn(move || start_server(true));
     }
