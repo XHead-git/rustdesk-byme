@@ -555,7 +555,7 @@ jobs:
           - {
               target: aarch64-apple-darwin,
               os: macos-latest,
-              extra-build-args: "",
+              extra-build-args: "--disable-flutter-texture-render", # disable this for mac, because we see a lot of users reporting flickering both on arm and x64, and we can not confirm if texture rendering has better performance if htere is no vram, https://github.com/rustdesk/rustdesk/issues/6296
               arch: aarch64,
             }
     steps:
@@ -973,7 +973,7 @@ jobs:
               arch: x86_64,
               target: x86_64-unknown-linux-gnu,
               distro: ubuntu18.04,
-              extra-build-features: "",
+              extra-build-args: "--disable-flutter-texture-render", # disable this for mac, because we see a lot of users reporting flickering both on arm and x64, and we can not confirm if texture rendering has better performance if htere is no vram, https://github.com/rustdesk/rustdesk/issues/6296
               enable-headless: true,
               on: ubuntu-20.04,
             }
@@ -1184,6 +1184,7 @@ jobs:
 
   build-rustdesk-sciter-arm:
     if: ${{ inputs.upload-artifact }}
+    needs: build-rustdesk-lib-linux # not for dep, just make it run later for parallelism
     runs-on: [self-hosted, Linux, ARM64]
     name: build-rustdesk-sciter-arm ${{ matrix.job.target }}
     strategy:
@@ -1571,7 +1572,7 @@ jobs:
           sed -i "s/x86_64/${{ matrix.job.arch }}/g" res/PKGBUILD
           if [[ "${{ matrix.job.arch }}" == "aarch64" ]]; then
             sed -i "s/linux\/x64/linux\/arm64/g" ./res/PKGBUILD
-          end
+          fi
 
       - name: Build archlinux package
         if: matrix.job.extra-build-features == '' && env.UPLOAD_ARTIFACT == 'true'
