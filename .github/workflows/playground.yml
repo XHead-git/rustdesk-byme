@@ -10,7 +10,7 @@ env:
   RUST_VERSION: "1.75" # https://github.com/rustdesk/rustdesk/discussions/7503
   CARGO_NDK_VERSION: "3.1.2"
   LLVM_VERSION: "15.0.6"
-  FLUTTER_VERSION: "3.16.9"
+  FLUTTER_VERSION: "3.13.9"
   FLUTTER_RUST_BRIDGE_VERSION: "1.80.1"
   # for arm64 linux because official Dart SDK does not work
   FLUTTER_ELINUX_VERSION: "3.16.9"
@@ -43,35 +43,7 @@ jobs:
               target: aarch64-linux-android,
               os: ubuntu-20.04,
               openssl-arch: android-arm64,
-              ref: 0d75f71d16b9712b959423f6ae8fe5de7502e8f2 # mar 30
-            }
-          - {
-              arch: aarch64,
-              target: aarch64-linux-android,
-              os: ubuntu-20.04,
-              openssl-arch: android-arm64,
-              ref: 0540e2cf6c4292e06320222acc6c05ef09e677e4 # mar 20
-            }
-          - {
-              arch: aarch64,
-              target: aarch64-linux-android,
-              os: ubuntu-20.04,
-              openssl-arch: android-arm64,
-              ref: c0e5e78d2be72d44512e08692bbe0d8e973925e8 # mar 10
-            }
-          - {
-              arch: aarch64,
-              target: aarch64-linux-android,
-              os: ubuntu-20.04,
-              openssl-arch: android-arm64,
-              ref: 633076ddd468a20ac20ef12a7e06b9945ee4fb67 # feb 10
-            }
-          - {
-              arch: aarch64,
-              target: aarch64-linux-android,
-              os: ubuntu-20.04,
-              openssl-arch: android-arm64,
-              ref: ebfbc8ce61d2e1a6a5bf9576556e1e4b75f2f2c3 # jan 10
+              ref: 30bd4e1cef96c492d0cf541a59fb976e24dbbb54, # latest
             }
     steps:
       - name: Checkout source code
@@ -108,6 +80,7 @@ jobs:
                libxfixes-dev \
                llvm-10-dev \
                nasm \
+               yasm \
                ninja-build \
                openjdk-11-jdk-headless \
                pkg-config \
@@ -130,6 +103,7 @@ jobs:
         run: |
           git config --global core.longpaths true
           cargo install flutter_rust_bridge_codegen --version ${{ env.FLUTTER_RUST_BRIDGE_VERSION }} --features "uuid"
+          sed -i 's/uni_links_desktop/#uni_links_desktop/g' flutter/pubspec.yaml
           pushd flutter ; flutter pub get ; popd
           ~/.cargo/bin/flutter_rust_bridge_codegen --rust-input ./src/flutter_ffi.rs --dart-output ./flutter/lib/generated_bridge.dart
 
@@ -156,6 +130,15 @@ jobs:
             ;;
           esac
         shell: bash
+
+      - name: Clone deps
+        shell: bash
+        run: |
+          pushd /opt
+          git clone https://github.com/rustdesk-org/rustdesk_thirdparty_lib.git --depth=1
+          ls -ls /opt/artifacts/vcpkg/installed/arm64-android/lib/
+          # cp -rf /opt/rustdesk_thirdparty_lib/vcpkg/* /opt/artifacts/vcpkg/
+          ls -ls /opt/artifacts/vcpkg/installed/arm64-android/lib/
 
       - name: Build rustdesk lib
         env:
@@ -207,7 +190,7 @@ jobs:
           esac
           popd
           mkdir -p signed-apk; pushd signed-apk
-          mv ../rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}.apk ./rustdesk-test-${{ matrix.job.ref }}.apk
+          mv ../rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}.apk ./rustdesk-test-${{ matrix.job.ref }}-${{ matrix.job.ndk }}.apk
 
       - uses: r0adkll/sign-android-release@v1
         name: Sign app APK
